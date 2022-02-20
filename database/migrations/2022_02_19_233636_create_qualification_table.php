@@ -13,15 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('products', function (Blueprint $table) {
+        Schema::create('qualification', function (Blueprint $table) {
             $table->id();
-            $table->string("sku");
-            $table->string("name");
-            $table->double("price");
-            $table->integer("amount");
-            $table->boolean("status");
+            $table->integer('qualification');
+            $table->unsignedBigInteger('product_id');
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 
@@ -32,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('products');
+        Schema::dropIfExists('qualification');
     }
 };

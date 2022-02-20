@@ -3,10 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Models\Qualification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
     /**
      * Display a listing of the resource.
      *
@@ -14,7 +22,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return Product::get();
+        return Product::with(['categories','qualification'])->orderby('id','desc')->get();
     }
 
     /**
@@ -25,8 +33,45 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $articulo = new Product;
-        $articulo->create($request->all());
+        try {
+            $request->validate([
+                'sku' => 'required|max:255',
+                'name' => 'required|max:255',
+                'price' => 'numeric|min:0',
+                'amount' => 'numeric|min:0',
+                'status' => 'required',
+                'category' => 'required',
+            ]);
+            $product = new Product;
+            $product->sku=$request->sku;
+            $product->name=$request->name;
+            $product->price=$request->price;
+            $product->amount=$request->amount;
+            $product->status=$request->status;
+            if ($product->save()) {
+                    $category = new ProductCategory;
+                    $category->product_id=$product->id;
+                    $category->category_id=$request->category;
+                    $category->save();
+            }
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+        
+    }
+    public function qualification(Request $request){
+        try {
+            $request->validate([
+                'calific' => 'required',
+            ]);
+            $qualification = new Qualification;
+            $qualification->qualification=$request->calific;
+            $qualification->product_id=$request->id;
+            if ($qualification->save()) {
+            }
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
     }
 
     /**
@@ -37,7 +82,7 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        return $product;
+        return Product::with(['categories','qualification'])->where('id',$product->id)->first();
     }
 
     /**
@@ -49,7 +94,30 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        $product->update($request->all());
+        try {
+            $request->validate([
+                'sku' => 'required|max:255',
+                'name' => 'required|max:255',
+                'price' => 'numeric|min:0',
+                'amount' => 'numeric|min:0',
+                'status' => 'required',
+                'category' => 'required',
+            ]);
+            $product->sku=$request->sku;
+            $product->name=$request->name;
+            $product->price=$request->price;
+            $product->amount=$request->amount;
+            $product->status=$request->status;
+            if ($product->update()) {
+                ProductCategory::where('product_id',$product->id)->deleted();
+                    $category = new ProductCategory;
+                    $category->product_id=$product->id;
+                    $category->category_id=$request->category;
+                    $category->save();
+            }
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
     }
 
     /**
@@ -61,5 +129,10 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $product->delete();
+    }
+    public function stock($id){
+        $product=Product::where('id',$id)->first();
+        $product->status=($product->status==1)? 0:1;
+        $product->update();
     }
 }

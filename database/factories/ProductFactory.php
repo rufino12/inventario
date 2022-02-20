@@ -21,8 +21,7 @@ class ProductFactory extends Factory
             'name' => $this->faker->unique()->sentence(3),
             'price' => $this->faker->randomFloat(2, 1, 100),
             'amount' => $this->faker->randomNumber(),
-            'status' => $this->faker->boolean(),
-            'category_id' => $this->faker->numberBetween(1,3) //factory(App\Models\Category::class),
+            'status' => $this->faker->boolean()
         ];
     }
 }

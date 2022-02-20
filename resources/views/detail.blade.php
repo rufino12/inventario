@@ -2,6 +2,6 @@
 
 @section('content')
 <div class="container">
-<product/>
+<detail :id='{{$id}}'/>
 </div>
 @endsection
